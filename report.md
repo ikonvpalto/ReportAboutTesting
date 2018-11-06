@@ -41,11 +41,107 @@
 
 ### Заглушки
 
-  * Stub - Объект, который является фейковой реализаций какого-то интерфейса.
-  * Mock - Stub, поведение которого описывается на этапе выолнения теста. Т.е. Stub мы написали зарнее и пользуемся при тестировании, А Mock создается в тесте и там же и опичывается, что при вызове таких-то методов с такими-то парамерами вернется такой-то результат.
+Есть несколько видов
+
+  * Fake - 
+  * Dummy - объект, который совсем не несет в себе какой-то информации, но
+
+  * Stub и Mock очень похожи и их легко спутать. Оба являються фейковой и упрощенной заменой каких-то других объектов. Но между ними есть 2 принципиальных различия, которые сейчас покажу на примере. Представим следующую задачу: Есть склад с продуктами и заказы на продукты. Если мы заказываем продукт, который есть на складе в нужном нам количестве, то заказ проходит успешно, а количество товаров на складе уменьшается. Если товара нет или мы запрашиваем больше, чем есть, то заказ не проходит. Давайте посмотрим на тесты для этой задачи.
+
+    ```C#
+    [Fact]
+    public void TestOrderIsFilledIfEnoughInWarehouse()
+    {
+        Warehouse warehouse = new Warehouse { { "1", 5 }, { "2", 6 } }; 
+        Order order = new Order
+        {
+            Amount = 5,
+            Product = "1"
+        };
+
+        order.Fill(warehouse);
+
+        Assert.True(order.IsFilled);
+        Assert.Equal(0, warehouse["1"]);
+    }
+
+    [Fact]
+    public void TestOrderDoesNotRemoveIfNotEnough()
+    {
+        Warehouse warehouse = new Warehouse { { "1", 5 }, { "2", 6 } };
+        Order order = new Order
+        {
+            Amount = 6,
+            Product = "1"
+        };
+
+        order.Fill(warehouse);
+
+        Assert.False(order.IsFilled);
+        Assert.Equal(5, warehouse["1"]);
+    }
+    ```
+
+  Тесты составлены по паттерну AAA (Arrange, Act, Assert): в начале создаем склад с товарами и заказ, после выполняем тест, а в конце проверяем результат. Обращаю внимание на то, что в конце теста проверяется состояние в котором оказались тестовые объекты. 
+  Теперь перепишем тест немного иначе:
+
+    ```C#
+    [Fact]
+    public void TestOrderIsFilledIfEnoughInWarehouse()
+    {
+        Mock<Warehouse> warehouseMock = new Mock<Warehouse>();
+        warehouseMock
+            .Setup(warehouse => warehouse.IsHave("1", 5))
+            .Returns(true);
+        Order order = new Order
+        {
+            Amount = 5,
+            Product = "1"
+        };
+
+        order.Fill(warehouseMock.Object);
+
+        Assert.True(order.IsFilled);
+        warehouseMock.Verify(warehouse => warehouse.IsHave("1", 5), Times.Once);
+        warehouseMock.Verify(warehouse => warehouse.IsHave(It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+        warehouseMock.Verify(warehouse => warehouse.Take("1", 5), Times.Once);
+        warehouseMock.Verify(warehouse => warehouse.Take(It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+    }
+
+    [Fact]
+    public void TestOrderDoesNotRemoveIfNotEnough()
+    {
+        Mock<Warehouse> warehouseMock = new Mock<Warehouse>();
+        warehouseMock
+            .Setup(warehouse => warehouse.IsHave("1", 6))
+            .Returns(true);
+        Order order = new Order
+        {
+            Amount = 6,
+            Product = "1"
+        };
+
+
+        order.Fill(warehouseMock.Object);
+
+        Assert.False(order.IsFilled);
+        warehouseMock.Verify(warehouse => warehouse.IsHave("1", 6), Times.Once);
+        warehouseMock.Verify(warehouse => warehouse.IsHave(It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+        warehouseMock.Verify(warehouse => warehouse.Take(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+    }
+    ```
+
+  Общая схема абсолютно такая же, но детали отличаются:
+    1. В начале вместо содания и заполнения объекта склада, создаеться mock-объект и определяется его поведение. 
+    2. В конце проверяется не состояние склада, а действия, которые были над ним выполнены.
+    3. Мы для проверки склада не вызвали ни одного assert-а. Вместо этого вызываtтся метод `Verify`. 
+
+  Как нетрудно догадаться, во втором примере мы использовали **Mock** в качестве тестового склада , а в первом методом исключения - **Stub**. Исходя из вышенаписанного можно выделить два ключевых различия между **Mock** и **Stub**:
+
+    1. **Mock** - это про проверку поведения (*behavior verification*), а **Stub** - про проверку состояния (*state verification*).
+    2. **Mock** сам производит assert-ы и может выкидывать исключения, в то время как **Stub** проверяет программист.
+
   * Spy
-  * Dummy
-  * Fake
 
 Внимание на обЬяснение, в чем отличие между ними, на SO есть несколько вопросов по этому. Martin Fowler.
 

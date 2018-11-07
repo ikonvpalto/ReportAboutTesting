@@ -2,7 +2,13 @@
 
 namespace XUnitTestProject
 {
-    internal class Warehouse: Dictionary<string, int>
+    public interface IWarehouse
+    {
+        bool IsHave(string product, int amount);
+        void Take(string product, int amount);
+    }
+
+    internal class Warehouse: Dictionary<string, int>, IWarehouse
     {
         public bool IsHave(string product, int amount)
         {
@@ -27,7 +33,7 @@ namespace XUnitTestProject
         private bool _isFilled { get; set; } = false;
         public bool IsFilled => _isFilled;
 
-        public void Fill(Warehouse warehouse)
+        public void Fill(IWarehouse warehouse)
         {
             if (_isFilled)
             {

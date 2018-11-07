@@ -110,7 +110,7 @@
   [Fact]
   public void TestOrderIsFilledIfEnoughInWarehouse()
   {
-      Mock<Warehouse> warehouseMock = new Mock<Warehouse>();
+      Mock<IWarehouse> warehouseMock = new Mock<IWarehouse>();
       warehouseMock
           .Setup(warehouse => warehouse.IsHave("1", 5))
           .Returns(true);
@@ -128,22 +128,21 @@
       warehouseMock.Verify(warehouse => warehouse.Take("1", 5), Times.Once);
       warehouseMock.Verify(warehouse => warehouse.Take(It.IsAny<string>(), It.IsAny<int>()), Times.Once);
   }
-
+  
   [Fact]
   public void TestOrderDoesNotRemoveIfNotEnough()
   {
-      Mock<Warehouse> warehouseMock = new Mock<Warehouse>();
+      Mock<IWarehouse> warehouseMock = new Mock<IWarehouse>();
       warehouseMock
           .Setup(warehouse => warehouse.IsHave("1", 6))
-          .Returns(true);
+          .Returns(false);
       Order order = new Order
       {
           Amount = 6,
           Product = "1"
       };
 
-
-      order.Fill(warehouseMock.Object);
+      order.Fill(warehouseMock.Object); 
 
       Assert.False(order.IsFilled);
       warehouseMock.Verify(warehouse => warehouse.IsHave("1", 6), Times.Once);
@@ -168,6 +167,33 @@
 Кстати, в тестах выше я использовал 2 библиотеки: xUnit.net и Moq. Давайте рассмотрим, для начала xUnit.net поближе
 
 ### xUnit.net
+
+```C#
+using Xunit;
+
+namespace XUnitTestProject
+{
+    public class XunitTests
+    {
+        [Fact]
+        public void TestSimple()
+        {
+            int num = 1 + 2;
+
+            Assert.Equal(3, num);
+        }
+    }
+}
+```
+
+Максимально простой тест. Создаём тестовый класс, который не надо помечать аттрибутами и который не наследуется от каких-то библиотечны классов. 
+
+### Moq
+
+Ососбенности:
+
+  * Мокируемый класс\интерфейс\... должен быть публичным
+  * Член, для которого определяется поведение, должен быть `virtual` 
 
 ### Тестирование асинхронных сценариев
 

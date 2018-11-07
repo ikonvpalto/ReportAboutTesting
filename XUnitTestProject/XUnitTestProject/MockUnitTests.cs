@@ -1,67 +1,14 @@
-using Xunit;
+﻿using Xunit;
 using Moq;
 
 namespace XUnitTestProject
 {
-    public class StubUnitTests
-    {
-        [Fact]
-        public void TestOrderIsFilledIfEnoughInWarehouse()
-        {
-            Warehouse warehouse = new Warehouse { { "1", 5 }, { "2", 6 } };
-            Order order = new Order
-            {
-                Amount = 5,
-                Product = "1"
-            };
-
-
-            order.Fill(warehouse);
-
-            Assert.True(order.IsFilled);
-            Assert.Equal(0, warehouse["1"]);
-        }
-
-        [Fact]
-        public void TestOrderDoesNotRemoveIfNotEnough()
-        {
-            Warehouse warehouse = new Warehouse { { "1", 5 }, { "2", 6 } };
-            Order order = new Order
-            {
-                Amount = 6,
-                Product = "1"
-            };
-
-
-            order.Fill(warehouse);
-
-            Assert.False(order.IsFilled);
-            Assert.Equal(5, warehouse["1"]);
-        }
-    }
-
     public class MockUnitTests
     {
-        internal class DummyLogger : ILogger
-        {
-            public void Log(string message) { }
-        }
-
-        [Fact]
-        public void TestWithDummy()
-        {
-            ILogger dummy = new DummyLogger();
-            Calculator calculator = new Calculator(dummy);
-
-            int result = calculator.Sum(1, 5, -1);
-
-            Assert.Equal(5, result);
-        }
-
         [Fact]
         public void TestOrderIsFilledIfEnoughInWarehouse()
         {
-            Mock<Warehouse> warehouseMock = new Mock<Warehouse>();
+            Mock<IWarehouse> warehouseMock = new Mock<IWarehouse>();
             warehouseMock
                 .Setup(warehouse => warehouse.IsHave("1", 5))
                 .Returns(true);
@@ -83,16 +30,15 @@ namespace XUnitTestProject
         [Fact]
         public void TestOrderDoesNotRemoveIfNotEnough()
         {
-            Mock<Warehouse> warehouseMock = new Mock<Warehouse>();
+            Mock<IWarehouse> warehouseMock = new Mock<IWarehouse>();
             warehouseMock
                 .Setup(warehouse => warehouse.IsHave("1", 6))
-                .Returns(true);
+                .Returns(false);
             Order order = new Order
             {
                 Amount = 6,
                 Product = "1"
             };
-
 
             order.Fill(warehouseMock.Object);
 

@@ -35,15 +35,17 @@
 
 ## Автотесты (80% времени)
 
-Тут можно чуть кодяру пописать. Посмотреть, что сейчас популярно, что развивается, рассказать-показать.
+Ура, автотесты, практика. Не тут то было. В начале опять теория. Поговорим про
 
-Надо как-то упомянуть модульное тестирование и перейти на
+### Тестовые заглушки (*Test doubles*)
 
-### Тестовые заглушки (*Doubles*)
+Почему? Потому, что они везде. Модульные тесты так вообще без заглушек никуда. 
 
-Это какие-то специальные объекты, которые создаються для каждого отдельного теста (или группы). Есть несколько разных видов:
+Сразу хочу сказать, что все термины ниже имеют разные определения в разных источниках (сколько источников, столько и оределений, ужас). Я брал большую часть у [Мартина Фаулера][TestDoubleFowler] и одно из [другого места][SpyDefinition] (мне оно показалось логичнее; может я не до конца понял Фаулера). Так что при использовании какой-то либы для тестирования обязательно посмотрите, какие определения у них.
 
-  * **Dummy** - объект-пустышка, который никак не относиться к тесту, но нужен для заполнения списка параметров.
+Тестовые заглушки (*Test doubles*) - Это общий термин для группы объектов, которые служат для замены production-сущностей при тестировании. Самый простой пример - использование локальной базы данных. Всего их 5: **Dummy**, **Fake**, **Stub**, **Mock**, **Spy**.
+
+  * **Dummy** - объект-пустышка, единственной целью которого является заолнения списка параметров. 
 
     ```C#
     internal class DummyLogger : ILogger
@@ -63,108 +65,109 @@
     }
     ```
 
-  * **Fake** - объект, который, в отличае от **Dummy**, имеет полноценную реализацию, но, обычно, она делается с упором в скорость написания и не подходит для исользования в продакшене. Например, чтобы не развертывать отдельную базу данных для тестов и не очищать её потом, можно использовать in-memory базу данных.
+  * **Fake** - тестовая заглушка, которая, в отличае от **Dummy**, имеет полноценную реализацию, но, обычно, очень упрощенную в угоду скорости написания, почему не подходит для исользования на проде. Пример выше с локальной базой данных - это оно.
 
-  * **Stub** и **Mock** - очень похожи и их легко спутать. Оба служат тестовым окружением для цели теста. Оба, в отличае от **Dummy** и **Fake** для проверки, коррекетно ли работает цель теста. Но между ними есть 2 принципиальных различия, которые сейчас покажу на примере. Представим следующую задачу: Есть склад с продуктами и заказы на продукты. Если мы заказываем продукт, который есть на складе в нужном нам количестве, то заказ проходит успешно, а количество товаров на складе уменьшается. Если товара нет или мы запрашиваем больше, чем есть, то заказ не проходит. Давайте посмотрим на тесты для этой задачи.
+  * **Stub** и **Mock** - очень похожие понятия. Во-первых, оба являются тестовыми заглушками, которые служат окружением (*environment*) для цели теста. Во-вторых, если **Dummy** и **Fake** мы поматросили и бросили, то **Stub** и **Mock** также используются для проверок, пройден тест или нет (корректно работает цель или нет). Это что общего, тепер различия, которые сейчас покажу на примере. Представим следующую задачу: Есть склад с продуктами и заказы на продукты. Если мы заказываем продукт, который есть на складе в нужном нам количестве, то заказ проходит успешно, а количество товаров на складе уменьшается. Если товара нет или мы запрашиваем больше, чем есть, то заказ не проходит. Давайте посмотрим на тесты для этой задачи:
 
-    ```C#
-    [Fact]
-    public void TestOrderIsFilledIfEnoughInWarehouse()
-    {
-        Warehouse warehouse = new Warehouse { { "1", 5 }, { "2", 6 } }; 
-        Order order = new Order
-        {
-            Amount = 5,
-            Product = "1"
-        };
+  ```C#
+  [Fact]
+  public void TestOrderIsFilledIfEnoughInWarehouse()
+  {
+      Warehouse warehouse = new Warehouse { { "1", 5 }, { "2", 6 } }; 
+      Order order = new Order
+      {
+          Amount = 5,
+          Product = "1"
+      };
 
-        order.Fill(warehouse);
+      order.Fill(warehouse);
 
-        Assert.True(order.IsFilled);
-        Assert.Equal(0, warehouse["1"]);
-    }
+      Assert.True(order.IsFilled);
+      Assert.Equal(0, warehouse["1"]);
+  }
 
-    [Fact]
-    public void TestOrderDoesNotRemoveIfNotEnough()
-    {
-        Warehouse warehouse = new Warehouse { { "1", 5 }, { "2", 6 } };
-        Order order = new Order
-        {
-            Amount = 6,
-            Product = "1"
-        };
+  [Fact]
+  public void TestOrderDoesNotRemoveIfNotEnough()
+  {
+      Warehouse warehouse = new Warehouse { { "1", 5 }, { "2", 6 } };
+      Order order = new Order
+      {
+          Amount = 6,
+          Product = "1"
+      };
 
-        order.Fill(warehouse);
+      order.Fill(warehouse);
 
-        Assert.False(order.IsFilled);
-        Assert.Equal(5, warehouse["1"]);
-    }
-    ```
+      Assert.False(order.IsFilled);
+      Assert.Equal(5, warehouse["1"]);
+  }
+  ```
 
   Тесты составлены по паттерну AAA (Arrange, Act, Assert): в начале создаем склад с товарами и заказ, после выполняем тест, а в конце проверяем результат. Обращаю внимание на то, что в конце теста проверяется состояние в котором оказались тестовые объекты. 
   Теперь перепишем тест немного иначе:
 
-    ```C#
-    [Fact]
-    public void TestOrderIsFilledIfEnoughInWarehouse()
-    {
-        Mock<Warehouse> warehouseMock = new Mock<Warehouse>();
-        warehouseMock
-            .Setup(warehouse => warehouse.IsHave("1", 5))
-            .Returns(true);
-        Order order = new Order
-        {
-            Amount = 5,
-            Product = "1"
-        };
+  ```C#
+  [Fact]
+  public void TestOrderIsFilledIfEnoughInWarehouse()
+  {
+      Mock<Warehouse> warehouseMock = new Mock<Warehouse>();
+      warehouseMock
+          .Setup(warehouse => warehouse.IsHave("1", 5))
+          .Returns(true);
+      Order order = new Order
+      {
+          Amount = 5,
+          Product = "1"
+      };
 
-        order.Fill(warehouseMock.Object);
+      order.Fill(warehouseMock.Object);
 
-        Assert.True(order.IsFilled);
-        warehouseMock.Verify(warehouse => warehouse.IsHave("1", 5), Times.Once);
-        warehouseMock.Verify(warehouse => warehouse.IsHave(It.IsAny<string>(), It.IsAny<int>()), Times.Once);
-        warehouseMock.Verify(warehouse => warehouse.Take("1", 5), Times.Once);
-        warehouseMock.Verify(warehouse => warehouse.Take(It.IsAny<string>(), It.IsAny<int>()), Times.Once);
-    }
+      Assert.True(order.IsFilled);
+      warehouseMock.Verify(warehouse => warehouse.IsHave("1", 5), Times.Once);
+      warehouseMock.Verify(warehouse => warehouse.IsHave(It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+      warehouseMock.Verify(warehouse => warehouse.Take("1", 5), Times.Once);
+      warehouseMock.Verify(warehouse => warehouse.Take(It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+  }
 
-    [Fact]
-    public void TestOrderDoesNotRemoveIfNotEnough()
-    {
-        Mock<Warehouse> warehouseMock = new Mock<Warehouse>();
-        warehouseMock
-            .Setup(warehouse => warehouse.IsHave("1", 6))
-            .Returns(true);
-        Order order = new Order
-        {
-            Amount = 6,
-            Product = "1"
-        };
+  [Fact]
+  public void TestOrderDoesNotRemoveIfNotEnough()
+  {
+      Mock<Warehouse> warehouseMock = new Mock<Warehouse>();
+      warehouseMock
+          .Setup(warehouse => warehouse.IsHave("1", 6))
+          .Returns(true);
+      Order order = new Order
+      {
+          Amount = 6,
+          Product = "1"
+      };
 
 
-        order.Fill(warehouseMock.Object);
+      order.Fill(warehouseMock.Object);
 
-        Assert.False(order.IsFilled);
-        warehouseMock.Verify(warehouse => warehouse.IsHave("1", 6), Times.Once);
-        warehouseMock.Verify(warehouse => warehouse.IsHave(It.IsAny<string>(), It.IsAny<int>()), Times.Once);
-        warehouseMock.Verify(warehouse => warehouse.Take(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
-    }
-    ```
+      Assert.False(order.IsFilled);
+      warehouseMock.Verify(warehouse => warehouse.IsHave("1", 6), Times.Once);
+      warehouseMock.Verify(warehouse => warehouse.IsHave(It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+      warehouseMock.Verify(warehouse => warehouse.Take(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+  }
+  ```
 
   Общая схема абсолютно такая же, но детали отличаются:
+
     1. В начале вместо содания и заполнения объекта склада, создаеться mock-объект и определяется его поведение. 
     2. В конце проверяется не состояние склада, а действия, которые были над ним выполнены.
     3. Мы для проверки склада не сделали ни одного assert-а. Вместо этого вызываtтся метод `Verify`, в которой передается не ожидаемые данные, а ожидаемое поведение. 
 
   Как нетрудно догадаться, во втором примере мы использовали **Mock** в качестве тестового склада , а в первом методом исключения - **Stub**. Исходя из вышенаписанного можно выделить два ключевых различия между **Mock** и **Stub**:
-  
+
     1. **Mock** - это про проверку поведения (*behavior verification*), а **Stub** - про проверку состояния (*state verification*).
-    2. **Mock** сам производит assert-ы и может выкидывать исключения, в то время как **Stub** проверяет программист.
+    2. **Mock** сам производит assert-ы и может выкидывать исключения, в то время как состояние **Stub** проверяет сам программист.
 
-  * **Spy** - это объект-обертка над обычным
+  * **Spy** - это объект-обертка, в который оборачиваются production-сущности, и который записывает 
 
-Внимание на обЬяснение, в чем отличие между ними, на SO есть несколько вопросов по этому. Martin Fowler.
+Кстати, в тестах выше я использовал 2 библиотеки: xUnit.net и Moq. Давайте рассмотрим, для начала xUnit.net поближе
 
-Заглушки закончились.
+### xUnit.net
 
 ### Тестирование асинхронных сценариев
 
@@ -173,7 +176,7 @@
 конец Тестирование асинхронных сценариев
 
 В течении главы про автотесты побольше кода. И на разных фремворках. Можно даже попробовать каждый пример написать на всех вариантах. Потом в конце сделать сравнение:
-  * xUnit.NET
+  * xUnit.net
   * NUnit
   * MSTest вряд ли, может упомяну
 
@@ -222,5 +225,7 @@ Behavior фреймворки:
   * https://github.com/ivaylokenov/MyTested.AspNetCore.Mvc
 
 [RespawnGithub]: https://github.com/jbogard/Respawn
+[TestDoubleFowler]: https://martinfowler.com/bliki/TestDouble.html
+[SpyDefinition]: https://javapointers.com/tutorial/difference-between-spy-and-mock-in-mockito/
 
 Вытянуть руку с микрофоном, уронить его, и уйти в закат.

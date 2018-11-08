@@ -219,6 +219,70 @@ public void TestTheorySimple(int a, int b, int expected)
 
 Немного поменяли старый тест и добавили аннотаций и получили 6 тестов. Класс! Но а как же оставшиеся `ClassData` и `MemberData`? Тут, по сути, тоже самое, только меняем способ получения. Через `InlineData` мы можем передавать только константные данные, В `ClassData` указывается класс-генератор данных, а `MemberData` - член текущего тестового класса, который будет генерировать тестовые данные.
 
+```C#
+public static List<object[]> testParams = new List<object[]>
+{
+    new object[] {1, 2, 3},
+    new object[] {0, 0, 0},
+    new object[] {0, int.MaxValue, int.MaxValue},
+    new object[] {int.MinValue, int.MaxValue, -1},
+    new object[] {int.MaxValue, int.MaxValue, -2},
+    new object[] {int.MinValue, int.MinValue, 0},
+};
+
+[Theory]
+[MemberData(nameof(testParams))]
+public void TestTheoryMember(int a, int b, int expected)
+{
+    int num = a + b;
+
+    Assert.Equal(expected, num);
+}
+
+public static IEnumerable<object[]> generateTestParams() 
+{
+    yield return new object[] { 1, 2, 3 };
+    yield return new object[] { 0, 0, 0 };
+    yield return new object[] { 0, int.MaxValue, int.MaxValue };
+    yield return new object[] { int.MinValue, int.MaxValue, -1 };
+    yield return new object[] { int.MaxValue, int.MaxValue, -2 };
+    yield return new object[] { int.MinValue, int.MinValue, 0 };
+}
+
+[Theory]
+[MemberData(nameof(generateTestParams))]
+public void TestTheoryMemberGenerator(int a, int b, int expected)
+{
+    int num = a + b;
+
+    Assert.Equal(expected, num);
+}
+
+public class TestsParamsGenerator : IEnumerable<object[]>
+{
+    public IEnumerator<object[]> GetEnumerator()
+    {
+        yield return new object[] { 1, 2, 3 };
+        yield return new object[] { 0, 0, 0 };
+        yield return new object[] { 0, int.MaxValue, int.MaxValue };
+        yield return new object[] { int.MinValue, int.MaxValue, -1 };
+        yield return new object[] { int.MaxValue, int.MaxValue, -2 };
+        yield return new object[] { int.MinValue, int.MinValue, 0 };
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+[Theory]
+[ClassData(typeof(TestsParamsGenerator))]
+public void TestTheoryClass(int a, int b, int expected)
+{
+    int num = a + b;
+
+    Assert.Equal(expected, num);
+}
+```
+
 Дальше. Как проверить, что метод падает. В каких-нибудь MSTest и NUnit (до 3.x версии) мы добавили к тесту аннотацию `ExpectedException`. Ай-ай-ай. Во-первых, а на какой строчке упало исключение? Может исключение упало не на той операции, на которой мы ожидаем. Во-вторых, после падения исключения тест заканчивается, а мы, может быть, хотим еще что-нибудь проверить. В xUnit не дали стрелять в ногу, а предоставили более простой вариант: `Assert.Throws()`:
 
 ```C#
@@ -237,7 +301,7 @@ namespace XUnitTestProject
 }
 ```
 
-
+На этом всё. Пошли дальше.
 
 ### Moq
 

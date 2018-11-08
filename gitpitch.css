@@ -1,6 +1,8 @@
 .slides {
     zoom: 1 !important;
     max-width: 100% !important;
+    hight: 100% !important;
+    width: 100% !important;
 }
 
 pre {

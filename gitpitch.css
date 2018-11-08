@@ -1,0 +1,6 @@
+code {
+    width: fit-content;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    height: fit-content;
+}

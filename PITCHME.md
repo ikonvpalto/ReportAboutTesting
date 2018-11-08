@@ -284,12 +284,18 @@ public class TestsParamsGenerator : IEnumerable<object[]>
 {
     public IEnumerator<object[]> GetEnumerator()
     {
-        yield return new object[] { 1, 2, 3 };
-        yield return new object[] { 0, 0, 0 };
-        yield return new object[] { 0, int.MaxValue, int.MaxValue };
-        yield return new object[] { int.MinValue, int.MaxValue, -1 };
-        yield return new object[] { int.MaxValue, int.MaxValue, -2 };
-        yield return new object[] { int.MinValue, int.MinValue, 0 };
+        yield return new object[]
+            { 1, 2, 3 };
+        yield return new object[]
+            { 0, 0, 0 };
+        yield return new object[]
+            { 0, int.MaxValue, int.MaxValue };
+        yield return new object[]
+            { int.MinValue, int.MaxValue, -1 };
+        yield return new object[]
+            { int.MaxValue, int.MaxValue, -2 };
+        yield return new object[]
+            { int.MinValue, int.MinValue, 0 };
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -327,7 +333,9 @@ namespace XUnitTestProject
         string a = null;
 
         NullReferenceException throwedException =
-            Assert.Throws<NullReferenceException>(() => a.Insert(1, "asd"));
+            Assert.Throws<NullReferenceException>(
+                () => a.Insert(1, "asd")
+            );
 
         Assert.Equal(nameof(XUnitTestProject), throwedException.Source);
     }

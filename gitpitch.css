@@ -1,7 +1,7 @@
 .slides {
-    zoom: 1;
-    width: fit-content;
-    max-width: 100%;
+    zoom: 1 !important;
+    width: fit-content !important;
+    max-width: 100% !important;
 }
 
 pre {

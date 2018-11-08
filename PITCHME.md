@@ -335,15 +335,3 @@ namespace XUnitTestProject
 ```
 
 ---
-
-## Список литературы
-
-- https://habr.com/post/275013/
-- http://docs.mytestedasp.net/tutorial/gettingstarted.html
-- https://github.com/ivaylokenov/MyTested.AspNetCore.Mvc
-- [respawngithub]: https://github.com/jbogard/Respawn
-- [testdoublefowler]: https://martinfowler.com/bliki/TestDouble.html
-- [spydefinition]: https://javapointers.com/tutorial/difference-between-spy-and-mock-in-mockito/
-- [whysetupteardownbad]: https://jamesnewkirk.typepad.com/posts/2007/09/why-you-should-.html
-
----

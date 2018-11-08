@@ -1,3 +1,9 @@
+.slides {
+    zoom: 1;
+    width: fit-content;
+    max-width: 100%;
+}
+
 pre {
     width: fit-content !important;
     max-width: 100% !important;
@@ -8,5 +14,5 @@ code {
     max-width: 100% !important;
     overflow-wrap: break-word !important;
     height: fit-content !important;
-    max-height: 600px !important;
+    max-height: 525px !important;
 }

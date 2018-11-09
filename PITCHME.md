@@ -102,17 +102,18 @@ Actual:   False
 
 - Порядок
 - Строковое сообщение
+  - > We are a believer in self-documenting code; that includes your assertions. If you cannot read the assertion and understand what you're asserting and why, then the code needs to be made clearer. Assertions with messages are like giving up on clear code in favor of comments, and with all the requisite danger: if you change the assert but not the message, then it leads you astray.
 
 ---
 
 # xUnit.net. `Theory`
 
 - Новый тест для каждого набора
-  - - Долго
-  - - Неподдерживаемо
+  - \- Долго
+  - \- Неподдерживаемо
 - Цикл
-  - - Отслеживание упавщего набора
-  - - Сколько прошло?
+  - \- Отслеживание упавщего набора
+  - \- Сколько тестов прошло?
 - `Theory`
 
 ---
@@ -217,11 +218,11 @@ public void TestTheoryClass(int a, int b, int expected)
 
 ---
 
-# xUnit.net. `Assert.Throws()`
+# xUnit.net. Проверка падения.
 
 - `ExpectedException`
-  - - Трекинг, где упало
-  - - Тест прекращается
+  - \- Трекинг, где упало
+  - \- Тест прекращается
 - `Assert.Throws()`
 
 ---
@@ -243,6 +244,146 @@ namespace XUnitTestProject
 
         Assert.Equal(nameof(XUnitTestProject), throwedException.Source);
     }
+}
+```
+
+---
+
+# xUnit.net. Подготовка данных.
+
+> The xUnit.net team feels that per-test setup and teardown creates difficult-to-follow and debug testing code, often causing unnecessary code to run before every single test is run. For more information, see http://jamesnewkirk.typepad.com/posts/2007/09/why-you-should-.html.
+
+> We believe that use of [SetUp] is generally bad. However, you can implement a parameterless constructor as a direct replacement.
+
+> We believe that use of [TearDown] is generally bad. However, you can implement IDisposable.Dispose as a direct replacement.
+
+---
+
+# xUnit.net. Подготовка данных.
+
+```C#
+public class FixtureTests : IDisposable
+{
+    private readonly ITestOutputHelper _output;
+
+    public FixtureTests(ITestOutputHelper output)
+    {
+        this._output = output;
+        output.WriteLine("Constructor");
+    }
+
+    [Fact]
+    public void TestSimple()
+    {
+        _output.WriteLine("TestSimple");
+    }
+
+    [Fact]
+    public void TestException()
+    {
+        _output.WriteLine("TestException");
+    }
+
+    public void Dispose()
+    {
+        _output.WriteLine("Destructor");
+    }
+}
+```
+
+---
+
+# xUnit.Net. Fixture.
+
+- Передача данных между тестами
+- Синхронизация тестов
+
+---
+
+# xUnit.Net. Fixture.
+
+- ClassFixture
+- CollectionFixture
+
+---
+
+# xUnit.Net. ClassFixture.
+
+```C#
+public class DatabaseFixture : IDisposable
+{
+    public DatabaseFixture()
+    {
+        Db = new SqlConnection("ConnectionString");
+    }
+
+    public void Dispose()
+    {
+        Db.Dispose();
+    }
+
+    public SqlConnection Db { get; private set; }
+}
+
+public class DatabaseTests : IClassFixture<DatabaseFixture>
+{
+    private readonly DatabaseFixture _fixture;
+
+    public DatabaseTests(DatabaseFixture fixture)
+    {
+        _fixture = fixture;
+    }
+    
+    [Fact]
+    public void Test() {
+        //Test
+    }
+}
+```
+
+---
+
+# xUnit.Net. CollectionFixture.
+
+```C#
+public class DatabaseFixture : IDisposable
+{
+    public DatabaseFixture()
+    {
+        Db = new SqlConnection("MyConnectionString");
+    }
+
+    public void Dispose()
+    {
+        Db.Dispose();
+    }
+
+    public SqlConnection Db { get; private set; }
+}
+
+[CollectionDefinition("Database collection")]
+public class DatabaseCollection : ICollectionFixture<DatabaseFixture> {}
+
+[Collection("Database collection")]
+public class DatabaseTestClass1
+{
+    DatabaseFixture fixture;
+
+    public DatabaseTestClass1(DatabaseFixture fixture)
+    {
+        this.fixture = fixture;
+    }
+    
+    [Fact]
+    public void Test() {
+        //Test
+    }
+}
+
+[Collection("Database collection")]
+public class DatabaseTestClass2
+{
+    // ...
 }
 ```
 
@@ -403,5 +544,8 @@ public void TestOrderDoesNotRemoveIfNotEnough()
 ---
 
 # **Spy**
+
+Отличии от **Mock**:
+  - Оборачивает обычный объект
 
 ---

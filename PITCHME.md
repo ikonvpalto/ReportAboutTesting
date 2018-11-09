@@ -264,7 +264,7 @@ namespace XUnitTestProject
 
 # xUnit.net. Вывод.
 
-[Вывод](./Output.png)
+[Вывод](https://github.com/ikonvpalto/ReportAboutTesting/blob/master/Output.PNG)
 
 ---
 

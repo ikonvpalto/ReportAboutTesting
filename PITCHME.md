@@ -259,6 +259,15 @@ namespace XUnitTestProject
 
 ---
 
+
+
+
+# xUnit.net. Вывод.
+
+[Вывод](./Output.png)
+
+---
+
 # xUnit.net. Подготовка данных.
 
 ```C#

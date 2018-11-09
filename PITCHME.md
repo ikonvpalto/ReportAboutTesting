@@ -13,13 +13,13 @@
 
 ---
 
-# Классификация тестирования
+# Классификация
 
 - Функциональное тестирование
-- Системное тестирование
-- Тестирование проиводительности
+- Модульное тестирование
+- Интеграционное
 - Регрессионное тестирование
-- Модульное
+- Тестирование проиводительности
 - Тестирование безопасности
 - Тестирование локализации
 - Тестирование интерфейса
@@ -45,12 +45,12 @@
 
 # Подходы. Автоматическое
 
-| +           | -                                             |
-| ----------- | --------------------------------------------- |
-| Повторяемые | Прошел \ непрошел                             |
-| Нагрузочное | Долго писать                                  |
-|             | Надо поддерживать                             |
-|             | Машина не оцценит, на сколько красивая кнопка |
+| +           | -                                            |
+| ----------- | -------------------------------------------- |
+| Повторяемые | Прошел \ не прошел                           |
+| Нагрузочное | Долго писать                                 |
+|             | Надо поддерживать                            |
+|             | Машина не оценит, на сколько красивая кнопка |
 
 ---
 
@@ -251,11 +251,11 @@ namespace XUnitTestProject
 
 # xUnit.net. Подготовка данных.
 
-> The xUnit.net team feels that per-test setup and teardown creates difficult-to-follow and debug testing code, often causing unnecessary code to run before every single test is run. For more information, see http://jamesnewkirk.typepad.com/posts/2007/09/why-you-should-.html.
+- > The xUnit.net team feels that per-test setup and teardown creates difficult-to-follow and debug testing code, often causing unnecessary code to run before every single test is run. For more information, see http://jamesnewkirk.typepad.com/posts/2007/09/why-you-should-.html.
 
-> We believe that use of [SetUp] is generally bad. However, you can implement a parameterless constructor as a direct replacement.
+- > We believe that use of [SetUp] is generally bad. However, you can implement a parameterless constructor as a direct replacement.
 
-> We believe that use of [TearDown] is generally bad. However, you can implement IDisposable.Dispose as a direct replacement.
+- > We believe that use of [TearDown] is generally bad. However, you can implement IDisposable.Dispose as a direct replacement.
 
 ---
 
@@ -307,7 +307,7 @@ public class FixtureTests : IDisposable
 
 ---
 
-# xUnit.Net. ClassFixture.
+# xUnit.Net. `ClassFixture`.
 
 ```C#
 public class DatabaseFixture : IDisposable
@@ -343,7 +343,7 @@ public class DatabaseTests : IClassFixture<DatabaseFixture>
 
 ---
 
-# xUnit.Net. CollectionFixture.
+# xUnit.Net. `CollectionFixture`.
 
 ```C#
 public class DatabaseFixture : IDisposable
@@ -389,7 +389,8 @@ public class DatabaseTestClass2
 
 ---
 
-# Тестовые заглушки (_Test doubles_)
+# Тестовые заглушки 
+# (_Test doubles_)
 
 - **Dummy**
 - **Fake**
@@ -429,8 +430,8 @@ public void TestWithDummy()
 
 # Схожесть **Stub** и **Mock**
 
-1. Environment
-2. Проверки (_assertions_)
+- Environment
+- Проверки (_assertions_)
 
 ---
 
@@ -530,7 +531,7 @@ public void TestOrderDoesNotRemoveIfNotEnough()
 
 # **Stub** и **Mock**
 
-- Определение поведения **Mock**-объекта
+- Определение поведения
 - Проверка поведения
 - Нет `Assert`-ов
 
